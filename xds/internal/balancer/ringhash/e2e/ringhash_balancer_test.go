@@ -1377,9 +1377,8 @@ func (s) TestRingHash_IdleToReady(t *testing.T) {
 
 	checkRPCSendOK(ctx, t, client, 1)
 
-	if got, want := conn.GetState(), connectivity.Ready; got != want {
-		t.Errorf("conn.GetState(): got %v, want %v", got, want)
-	}
+	// The state update races with the RPC returning under -race; wait for it.
+	testutils.AwaitState(ctx, t, conn, connectivity.Ready)
 }
 
 // Test that the channel will transition to READY once it starts
@@ -1541,9 +1540,8 @@ func (s) TestRingHash_ReattemptWhenGoingFromTransientFailureToIdle(t *testing.T)
 	if _, err = client.EmptyCall(ctx, &testpb.Empty{}); err == nil {
 		t.Errorf("rpc EmptyCall() succeeded, want error")
 	}
-	if got, want := conn.GetState(), connectivity.TransientFailure; got != want {
-		t.Errorf("conn.GetState(): got %v, want %v", got, want)
-	}
+	// The state update races with the RPC returning under -race; wait for it.
+	testutils.AwaitState(ctx, t, conn, connectivity.TransientFailure)
 
 	backends := startTestServiceBackends(t, 1)
 
@@ -1563,9 +1561,8 @@ func (s) TestRingHash_ReattemptWhenGoingFromTransientFailureToIdle(t *testing.T)
 	if _, err = client.EmptyCall(ctx, &testpb.Empty{}, grpc.WaitForReady(true)); err != nil {
 		t.Errorf("rpc EmptyCall() failed: %v", err)
 	}
-	if got, want := conn.GetState(), connectivity.Ready; got != want {
-		t.Errorf("conn.GetState(): got %v, want %v", got, want)
-	}
+	// The state update races with the RPC returning under -race; wait for it.
+	testutils.AwaitState(ctx, t, conn, connectivity.Ready)
 }
 
 // Tests that when all backends are down and then up, we may pick a TF backend
