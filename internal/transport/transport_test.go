@@ -223,7 +223,7 @@ func (h *testStreamHandler) handleStreamEncodingRequiredStatus(s *Stream) {
 func (h *testStreamHandler) handleStreamInvalidHeaderField(s *Stream) {
 	headerFields := []hpack.HeaderField{}
 	headerFields = append(headerFields, hpack.HeaderField{Name: "content-type", Value: expectedInvalidHeaderField})
-	h.t.controlBuf.put(&headerFrame{
+	h.t.controlBuf.put(&serverHeaders{
 		streamID:  s.id,
 		hf:        headerFields,
 		endStream: false,
@@ -2529,7 +2529,7 @@ func (s) TestClientDecodeHeaderStatusErr(t *testing.T) {
 			activeStreams: map[uint32]*Stream{
 				0: ts,
 			},
-			controlBuf: newControlBuffer(make(<-chan struct{})),
+			controlBuf: newControlBuffer(make(<-chan struct{}), clientSide),
 		}
 	}
 
